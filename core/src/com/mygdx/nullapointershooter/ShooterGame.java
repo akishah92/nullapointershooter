@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class ShooterGame extends ApplicationAdapter {
+	public static final int SCREEN_WIDTH = 800;
+	public static final int SCREEN_HEIGHT = 480;
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 	private Texture background;
@@ -18,13 +20,13 @@ public class ShooterGame extends ApplicationAdapter {
 	public void create () {
 
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 800, 480);
+		camera.setToOrtho(false, SCREEN_WIDTH, SCREEN_HEIGHT);
 		batch = new SpriteBatch();
 		background = new Texture("space-background.png");
 		Texture spaceshipTexture = new Texture("spaceship-spritesheet.png");
 		Sprite spaceshipSprite = new Sprite(spaceshipTexture);
 		spaceshipAnimated = new AnimatedSprite(spaceshipSprite);
-		spaceshipAnimated.setPosition(background.getWidth()/2, 0);
+		spaceshipAnimated.setPosition(SCREEN_WIDTH/2, 0);
 	}
 
 	@Override
@@ -37,8 +39,24 @@ public class ShooterGame extends ApplicationAdapter {
 		batch.draw(background, 0, 0);
 		spaceshipAnimated.draw(batch);
 		batch.end();
+
+		handleInput();
+		spaceshipAnimated.move();
 	}
-	
+
+	private void handleInput() {
+		if (Gdx.input.isTouched()) {
+			int xTouch = Gdx.input.getX();
+
+			if (xTouch > spaceshipAnimated.getX()) {
+				spaceshipAnimated.moveRight();
+			}
+			else {
+				spaceshipAnimated.moveLeft();
+			}
+		}
+	}
+
 	@Override
 	public void dispose () {
 		batch.dispose();
