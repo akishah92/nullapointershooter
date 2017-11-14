@@ -2,11 +2,14 @@ package com.mygdx.nullapointershooter;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector3;
 
 public class ShooterGame extends ApplicationAdapter {
 	public static final int SCREEN_WIDTH = 800;
@@ -15,18 +18,30 @@ public class ShooterGame extends ApplicationAdapter {
 	private SpriteBatch batch;
 	private Texture background;
 	private AnimatedSprite spaceshipAnimated;
+	private ShotManager shotManager;
+	private Music gameMusic;
 	
 	@Override
 	public void create () {
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, SCREEN_WIDTH, SCREEN_HEIGHT);
+
 		batch = new SpriteBatch();
+
 		background = new Texture("space-background.png");
 		Texture spaceshipTexture = new Texture("spaceship-spritesheet.png");
 		Sprite spaceshipSprite = new Sprite(spaceshipTexture);
 		spaceshipAnimated = new AnimatedSprite(spaceshipSprite);
 		spaceshipAnimated.setPosition(SCREEN_WIDTH/2, 0);
+
+		Texture shotTexture = new Texture("shot-spritesheet.png");
+		shotManager = new ShotManager(shotTexture);
+
+		gameMusic = Gdx.audio.newMusic(Gdx.files.internal("game-music.wav"));
+		gameMusic.setVolume(0.25f);
+		gameMusic.setLooping(true);
+		gameMusic.play();
 	}
 
 	@Override
@@ -38,22 +53,27 @@ public class ShooterGame extends ApplicationAdapter {
 		batch.begin();
 		batch.draw(background, 0, 0);
 		spaceshipAnimated.draw(batch);
+		shotManager.draw(batch);
 		batch.end();
 
 		handleInput();
 		spaceshipAnimated.move();
+
+		shotManager.update();
 	}
 
 	private void handleInput() {
 		if (Gdx.input.isTouched()) {
-			int xTouch = Gdx.input.getX();
+			Vector3 touchPosition = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+			camera.unproject(touchPosition);
 
-			if (xTouch > spaceshipAnimated.getX()) {
+			if (touchPosition.x > spaceshipAnimated.getX()) {
 				spaceshipAnimated.moveRight();
-			}
-			else {
+			} else {
 				spaceshipAnimated.moveLeft();
 			}
+
+			shotManager.firePlayerShot(spaceshipAnimated.getX());
 		}
 	}
 

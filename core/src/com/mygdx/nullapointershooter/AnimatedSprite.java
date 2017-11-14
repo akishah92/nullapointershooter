@@ -7,9 +7,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
-
-import sun.net.InetAddressCachePolicy;
 
 public class AnimatedSprite {
     private static final int SHIP_SPEED = 300;
@@ -69,12 +66,13 @@ public class AnimatedSprite {
     }
 
     public int getX() {
-        return (int) (sprite.getWidth() + getSpriteCenterOffset());
+        return (int) (sprite.getX() + getSpriteCenterOffset());
     }
 
     public void move() {
         int xMovement = (int) (velocity.x * Gdx.graphics.getDeltaTime());
-        sprite.setPosition(sprite.getX() + xMovement, 0);
+        int yMovement = (int) (velocity.y * Gdx.graphics.getDeltaTime());
+        sprite.setPosition(sprite.getX() + xMovement, sprite.getY() + yMovement);
 
         if (sprite.getX() < 0) {
             sprite.setX(0);
@@ -85,5 +83,13 @@ public class AnimatedSprite {
             sprite.setX(ShooterGame.SCREEN_WIDTH - getSpriteWidth());
             velocity.x = 0;
         }
+    }
+
+    public void setVelocity(Vector2 velocity) {
+        this.velocity = velocity;
+    }
+
+    public int getY() {
+        return (int) sprite.getY();
     }
 }
