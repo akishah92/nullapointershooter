@@ -6,6 +6,7 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -20,7 +21,10 @@ public class ShooterGame extends ApplicationAdapter {
 	private AnimatedSprite spaceshipAnimated;
 	private ShotManager shotManager;
 	private Music gameMusic;
-	
+	private Enemy enemy;
+	private CollisionManager collisionManager;
+	private boolean isGameOver = false;
+
 	@Override
 	public void create () {
 
@@ -36,7 +40,13 @@ public class ShooterGame extends ApplicationAdapter {
 		spaceshipAnimated.setPosition(SCREEN_WIDTH/2, 0);
 
 		Texture shotTexture = new Texture("shot-spritesheet.png");
-		shotManager = new ShotManager(shotTexture);
+		Texture enemyShotTexture = new Texture("enemy-shot-spritesheet.png");
+		shotManager = new ShotManager(shotTexture, enemyShotTexture);
+
+		Texture enemyTexture = new Texture("enemy-spritesheet.png");
+		enemy = new Enemy(enemyTexture, shotManager);
+
+		collisionManager = new CollisionManager(spaceshipAnimated, enemy, shotManager);
 
 		gameMusic = Gdx.audio.newMusic(Gdx.files.internal("game-music.wav"));
 		gameMusic.setVolume(0.25f);
@@ -52,18 +62,41 @@ public class ShooterGame extends ApplicationAdapter {
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		batch.draw(background, 0, 0);
+
+		if (isGameOver) {
+			BitmapFont font = new BitmapFont();
+			font.draw(batch, "GAME OVER", 200, 200);
+		}
+
 		spaceshipAnimated.draw(batch);
+		enemy.draw(batch);
 		shotManager.draw(batch);
 		batch.end();
 
 		handleInput();
-		spaceshipAnimated.move();
 
-		shotManager.update();
+		if (!isGameOver) {
+			spaceshipAnimated.move();
+			enemy.update();
+			shotManager.update();
+
+			collisionManager.handleCollisions();
+		}
+
+		if (spaceshipAnimated.isDead()) {
+			isGameOver = true;
+		}
 	}
 
 	private void handleInput() {
+
 		if (Gdx.input.isTouched()) {
+
+			if (isGameOver) {
+				spaceshipAnimated.setDead(false);
+				isGameOver = false;
+			}
+
 			Vector3 touchPosition = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(touchPosition);
 
